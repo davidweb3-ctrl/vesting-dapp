@@ -8,6 +8,9 @@ skip-lint = false
 [programs.localnet]
 anchor_vesting = "BB1JtUxXtmDnb6L5qXUSfuvT18TggYuSLBzfmjoYFnb4"
 
+[programs.devnet]
+anchor_vesting = "BB1JtUxXtmDnb6L5qXUSfuvT18TggYuSLBzfmjoYFnb4"
+
 [[test.validator.genesis]]
 address = "EzRUZpW3CsvnKzEUiF7fAPHyHWsv2D3ERR482BPKHwYk"
 program = "pinocchio-vesting/target/deploy/pinocchio_vesting.so"
@@ -16,7 +19,7 @@ program = "pinocchio-vesting/target/deploy/pinocchio_vesting.so"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

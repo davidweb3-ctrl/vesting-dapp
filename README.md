@@ -207,18 +207,29 @@ pnpm dev
 
 ## 🏗️ 合约地址
 
-| Program | ID |
+### Devnet（已部署）
+
+| Program | Program ID | 状态 | Explorer 链接 |
+| --- | --- | --- | --- |
+| Anchor Vesting | `BB1JtUxXtmDnb6L5qXUSfuvT18TggYuSLBzfmjoYFnb4` | ✅ 已部署 | [查看](https://explorer.solana.com/address/BB1JtUxXtmDnb6L5qXUSfuvT18TggYuSLBzfmjoYFnb4?cluster=devnet) |
+| Pinocchio Vesting | `3XcZJ34qBmN2g9joSeVH2kBQkmh2ZVV3e6dRMb7TCq3h` | ✅ 已部署 | [查看](https://explorer.solana.com/address/3XcZJ34qBmN2g9joSeVH2kBQkmh2ZVV3e6dRMb7TCq3h?cluster=devnet) |
+
+### Localnet（测试）
+
+| Program | Program ID |
 | --- | --- |
 | Anchor Vesting | `BB1JtUxXtmDnb6L5qXUSfuvT18TggYuSLBzfmjoYFnb4` |
 | Pinocchio Vesting | `EzRUZpW3CsvnKzEUiF7fAPHyHWsv2D3ERR482BPKHwYk` |
+
+> **注意**：Pinocchio 的 Program ID 在 Devnet 和 Localnet 上不同，因为原生 Solana 程序的 Program ID 就是 keypair 的公钥。测试文件中的 `EzRUZpW3CsvnKzEUiF7fAPHyHWsv2D3ERR482BPKHwYk` 是 Localnet 测试用的 keypair。
 
 ---
 
 ## ✍️ 项目创作者
 
-1. **昵称**：xiadawei
-2. **联系方式**：（待补充）
-3. **Solana USDC 钱包地址**：（待补充）
+1. **昵称**：david.xia
+2. **联系方式**：prodavidweb3@gmail.com
+3. **Solana USDC 钱包地址**：EDFxPF6yAQNod3nFzwV7z1qwSjt42WDYzmdT6b6YHDh7
 
 ---
 
