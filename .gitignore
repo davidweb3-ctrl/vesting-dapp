@@ -1,0 +1,39 @@
+# Rust
+target/
+**/*.rs.bk
+
+# Node
+node_modules/
+.pnp.*
+.yarn/
+
+# Next.js
+app/.next/
+app/out/
+
+# Anchor
+.anchor/
+test-ledger/
+
+# IDL
+anchor-vesting-idl/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*

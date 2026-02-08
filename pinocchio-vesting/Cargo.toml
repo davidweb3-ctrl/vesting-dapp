@@ -1,0 +1,24 @@
+[package]
+name = "pinocchio-vesting"
+version = "0.1.0"
+description = "Secure Token Vesting - Native Pinocchio Implementation"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "pinocchio_vesting"
+
+[features]
+default = []
+bpf-entrypoint = []
+idl-build = []
+
+[dependencies]
+pinocchio = { version = "0.10", features = ["cpi"] }
+pinocchio-token = "0.5"
+pinocchio-system = "0.5"
+# solana-program-error comes transitively via pinocchio
+solana-program-log = "1"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }
