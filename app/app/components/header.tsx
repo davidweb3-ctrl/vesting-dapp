@@ -2,8 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import dynamic from "next/dynamic";
 import { useCluster, Cluster } from "../providers/cluster-provider";
+
+// 动态导入 WalletMultiButton，禁用 SSR 以避免 hydration 错误
+const WalletMultiButton = dynamic(
+  async () =>
+    (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
+  { ssr: false }
+);
 
 const navLinks = [
   { href: "/", label: "Home" },

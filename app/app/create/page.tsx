@@ -2,12 +2,15 @@
 
 import { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
+import { getMint } from "@solana/spl-token";
 import BN from "bn.js";
 import { useVestingProgram } from "../hooks/useVestingProgram";
 
 export default function CreateVestingPage() {
   const { publicKey } = useWallet();
+  const { connection } = useConnection();
   const { createVesting } = useVestingProgram();
 
   const [beneficiary, setBeneficiary] = useState("");
@@ -31,8 +34,12 @@ export default function CreateVestingPage() {
       const beneficiaryPk = new PublicKey(beneficiary);
       const mintPk = new PublicKey(mint);
       const seedBn = new BN(seed);
+
+      // Fetch actual token decimals from on-chain mint account
+      const mintInfo = await getMint(connection, mintPk);
+      const decimals = mintInfo.decimals;
       const amountBn = new BN(
-        Math.floor(parseFloat(totalAmount) * 10 ** 6)
+        Math.floor(parseFloat(totalAmount) * 10 ** decimals)
       );
       const startTs = new BN(Math.floor(new Date(startDate).getTime() / 1000));
       const cliffTs = new BN(Math.floor(new Date(cliffDate).getTime() / 1000));
@@ -48,13 +55,27 @@ export default function CreateVestingPage() {
         endTime: endTs,
       });
 
+      // Check if user cancelled (null return value)
+      if (result === null) {
+        // User cancelled, silently return
+        return;
+      }
+
       setTxSig(result.tx);
     } catch (err: any) {
-      const errorMsg =
-        err?.error?.errorMessage ||
-        err?.message ||
-        "Transaction failed";
-      setError(errorMsg);
+      
+      // Show actual errors
+      const errorCode = err?.error?.errorCode?.code;
+      let displayError =
+        err?.error?.errorMessage || err?.message || "Transaction failed";
+      
+      if (errorCode === "InvalidTimeRange") {
+        displayError = "Invalid time range: start_time <= cliff_time <= end_time and start_time < end_time";
+      } else if (errorCode === "InvalidAmount") {
+        displayError = "Invalid amount: total_amount must be greater than 0";
+      }
+      
+      setError(displayError);
     }
   };
 

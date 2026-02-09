@@ -31,13 +31,27 @@ export default function ClaimPage() {
     setTxSig(null);
     try {
       const tx = await claim.mutateAsync({ vestingPda, mint });
+      // Check if user cancelled (null return value)
+      if (tx === null) {
+        // User cancelled, silently return
+        return;
+      }
       setTxSig(tx);
     } catch (err: any) {
-      const errorMsg =
-        err?.error?.errorMessage ||
-        err?.message ||
-        "Claim failed";
-      setError(errorMsg);
+      
+      // Map Anchor error codes to user-friendly messages
+      const errorCode = err?.error?.errorCode?.code;
+      let displayError = err?.error?.errorMessage || err?.message || "Claim failed";
+      
+      if (errorCode === "NotFunded") {
+        displayError = "Not funded: Admin must deposit tokens into the vault before claiming. Please contact the admin to deposit tokens.";
+      } else if (errorCode === "NothingToClaim") {
+        displayError = "Nothing to claim: No tokens are available for release at this time. Either the cliff period hasn't passed, or all tokens have already been claimed.";
+      } else if (errorCode === "UnauthorizedBeneficiary") {
+        displayError = "Unauthorized: Only the beneficiary can claim tokens from this vesting schedule.";
+      }
+      
+      setError(displayError);
     }
   };
 
@@ -75,11 +89,16 @@ export default function ClaimPage() {
       ) : beneficiaryVestings.data &&
         beneficiaryVestings.data.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {beneficiaryVestings.data.map((v) => (
+          {beneficiaryVestings.data.map((v: any) => (
             <VestingCard
               key={v.publicKey.toString()}
               pubkey={v.publicKey}
-              account={v.account}
+              account={{
+                ...v.account,
+                vaultBalance: v.vaultBalance,
+                isFunded: v.isFunded,
+              }}
+              decimals={v.decimals}
               role="beneficiary"
               onClaim={() => handleClaim(v.publicKey, v.account.mint)}
               isClaiming={claim.isPending}

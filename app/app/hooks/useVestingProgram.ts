@@ -12,6 +12,8 @@ import {
   TOKEN_PROGRAM_ID,
   ASSOCIATED_TOKEN_PROGRAM_ID,
   getAssociatedTokenAddress,
+  getAccount,
+  getMint,
 } from "@solana/spl-token";
 import BN from "bn.js";
 import { getProgram, getVestingPda, PROGRAM_ID } from "../lib/program";
@@ -42,7 +44,41 @@ export function useVestingProgram() {
       const accounts = await program.account.vestingAccount.all([
         { memcmp: { offset: 8, bytes: wallet.publicKey.toBase58() } },
       ]);
-      return accounts;
+      
+      // Fetch vault balances and mint decimals for each vesting
+      const accountsWithVaultBalance = await Promise.all(
+        accounts.map(async (acc) => {
+          let decimals = 6; // default
+          try {
+            const mintInfo = await getMint(connection, acc.account.mint);
+            decimals = mintInfo.decimals;
+          } catch {}
+          try {
+            const vault = await getAssociatedTokenAddress(
+              acc.account.mint,
+              acc.publicKey,
+              true
+            );
+            const vaultAccount = await getAccount(connection, vault);
+            return {
+              ...acc,
+              vaultBalance: Number(vaultAccount.amount),
+              isFunded: Number(vaultAccount.amount) > 0,
+              decimals,
+            };
+          } catch (error) {
+            // Vault doesn't exist or not funded
+            return {
+              ...acc,
+              vaultBalance: 0,
+              isFunded: false,
+              decimals,
+            };
+          }
+        })
+      );
+      
+      return accountsWithVaultBalance;
     },
     enabled: !!wallet.publicKey,
   });
@@ -55,7 +91,41 @@ export function useVestingProgram() {
       const accounts = await program.account.vestingAccount.all([
         { memcmp: { offset: 8 + 32, bytes: wallet.publicKey.toBase58() } },
       ]);
-      return accounts;
+      
+      // Fetch vault balances and mint decimals for each vesting
+      const accountsWithVaultBalance = await Promise.all(
+        accounts.map(async (acc) => {
+          let decimals = 6; // default
+          try {
+            const mintInfo = await getMint(connection, acc.account.mint);
+            decimals = mintInfo.decimals;
+          } catch {}
+          try {
+            const vault = await getAssociatedTokenAddress(
+              acc.account.mint,
+              acc.publicKey,
+              true
+            );
+            const vaultAccount = await getAccount(connection, vault);
+            return {
+              ...acc,
+              vaultBalance: Number(vaultAccount.amount),
+              isFunded: Number(vaultAccount.amount) > 0,
+              decimals,
+            };
+          } catch (error) {
+            // Vault doesn't exist or not funded
+            return {
+              ...acc,
+              vaultBalance: 0,
+              isFunded: false,
+              decimals,
+            };
+          }
+        })
+      );
+      
+      return accountsWithVaultBalance;
     },
     enabled: !!wallet.publicKey,
   });
@@ -84,24 +154,43 @@ export function useVestingProgram() {
       const [vestingPda] = getVestingPda(beneficiary, mint, seed);
       const vault = await getAssociatedTokenAddress(mint, vestingPda, true);
 
-      const tx = await program.methods
-        .createVesting(seed, totalAmount, startTime, cliffTime, endTime)
-        .accountsPartial({
-          admin: wallet.publicKey,
-          beneficiary,
-          mint,
-          vestingAccount: vestingPda,
-          vault,
-          systemProgram: SystemProgram.programId,
-          tokenProgram: TOKEN_PROGRAM_ID,
-          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-        })
-        .rpc();
+      try {
+        const tx = await program.methods
+          .createVesting(seed, totalAmount, startTime, cliffTime, endTime)
+          .accountsPartial({
+            admin: wallet.publicKey,
+            beneficiary,
+            mint,
+            vestingAccount: vestingPda,
+            vault,
+            systemProgram: SystemProgram.programId,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          })
+          .rpc();
 
-      return { tx, vestingPda };
+        return { tx, vestingPda };
+      } catch (error: any) {
+        // Check if it's a user rejection - return null instead of throwing
+        const errorMsg = error?.message || error?.toString() || "";
+        if (
+          errorMsg.includes("User rejected") ||
+          errorMsg.includes("user rejected") ||
+          errorMsg.includes("WalletSignTransactionError") ||
+          error?.name === "WalletSignTransactionError"
+        ) {
+          // Return null to indicate user cancellation - this won't trigger error handlers
+          return null as any;
+        }
+        // Re-throw other errors
+        throw error;
+      }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["vestings"] });
+    onSuccess: (data) => {
+      // Only invalidate if transaction was successful (not null from user cancellation)
+      if (data) {
+        queryClient.invalidateQueries({ queryKey: ["vestings"] });
+      }
     },
   });
 
@@ -122,23 +211,42 @@ export function useVestingProgram() {
         wallet.publicKey
       );
 
-      const tx = await program.methods
-        .deposit()
-        .accountsPartial({
-          admin: wallet.publicKey,
-          mint,
-          vestingAccount: vestingPda,
-          vault,
-          adminTokenAccount: adminAta,
-          tokenProgram: TOKEN_PROGRAM_ID,
-          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-        })
-        .rpc();
+      try {
+        const tx = await program.methods
+          .deposit()
+          .accountsPartial({
+            admin: wallet.publicKey,
+            mint,
+            vestingAccount: vestingPda,
+            vault,
+            adminTokenAccount: adminAta,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          })
+          .rpc();
 
-      return tx;
+        return tx;
+      } catch (error: any) {
+        // Check if it's a user rejection - return null instead of throwing
+        const errorMsg = error?.message || error?.toString() || "";
+        if (
+          errorMsg.includes("User rejected") ||
+          errorMsg.includes("user rejected") ||
+          errorMsg.includes("WalletSignTransactionError") ||
+          error?.name === "WalletSignTransactionError"
+        ) {
+          // Return null to indicate user cancellation - this won't trigger error handlers
+          return null as any;
+        }
+        // Re-throw other errors
+        throw error;
+      }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["vestings"] });
+    onSuccess: (data) => {
+      // Only invalidate if transaction was successful (not null from user cancellation)
+      if (data) {
+        queryClient.invalidateQueries({ queryKey: ["vestings"] });
+      }
     },
   });
 
@@ -159,24 +267,43 @@ export function useVestingProgram() {
         wallet.publicKey
       );
 
-      const tx = await program.methods
-        .claim()
-        .accountsPartial({
-          beneficiary: wallet.publicKey,
-          mint,
-          vestingAccount: vestingPda,
-          vault,
-          beneficiaryTokenAccount: beneficiaryAta,
-          systemProgram: SystemProgram.programId,
-          tokenProgram: TOKEN_PROGRAM_ID,
-          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-        })
-        .rpc();
+      try {
+        const tx = await program.methods
+          .claim()
+          .accountsPartial({
+            beneficiary: wallet.publicKey,
+            mint,
+            vestingAccount: vestingPda,
+            vault,
+            beneficiaryTokenAccount: beneficiaryAta,
+            systemProgram: SystemProgram.programId,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          })
+          .rpc();
 
-      return tx;
+        return tx;
+      } catch (error: any) {
+        // Check if it's a user rejection - return null instead of throwing
+        const errorMsg = error?.message || error?.toString() || "";
+        if (
+          errorMsg.includes("User rejected") ||
+          errorMsg.includes("user rejected") ||
+          errorMsg.includes("WalletSignTransactionError") ||
+          error?.name === "WalletSignTransactionError"
+        ) {
+          // Return null to indicate user cancellation - this won't trigger error handlers
+          return null as any;
+        }
+        // Re-throw other errors
+        throw error;
+      }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["vestings"] });
+    onSuccess: (data) => {
+      // Only invalidate if transaction was successful (not null from user cancellation)
+      if (data) {
+        queryClient.invalidateQueries({ queryKey: ["vestings"] });
+      }
     },
   });
 

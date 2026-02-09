@@ -154,12 +154,35 @@ ANCHOR_PROVIDER_URL=http://127.0.0.1:8899 ANCHOR_WALLET=~/.config/solana/id.json
 ### 4. 启动前端
 
 ```bash
+# 方法 1: 使用启动脚本（推荐）
+bash scripts/start-frontend.sh
+
+# 方法 2: 手动启动
 cd app
 pnpm install
 pnpm dev
 ```
 
 访问 http://localhost:3000
+
+### 5. 测试 Devnet 部署
+
+前端默认连接到 Devnet。测试步骤：
+
+1. **连接钱包**: 点击右上角 "Select Wallet"，选择 Phantom/Solflare
+2. **切换到 Devnet**: 确保钱包网络设置为 Devnet
+3. **获取 Devnet SOL**: 
+   ```bash
+   solana airdrop 2 <你的钱包地址>
+   # 或访问 https://faucet.solana.com
+   ```
+4. **创建测试 Token**（如需要）: 使用 SPL Token CLI 创建
+5. **开始测试**: 
+   - 创建锁仓计划 (`/create`)
+   - 存入 Token (`/dashboard`)
+   - 领取 Token (`/claim`)
+
+详细测试指南请查看：[Devnet 测试指南](docs/DEVNET_TESTING.md)
 
 ---
 
