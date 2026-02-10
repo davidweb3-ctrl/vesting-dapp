@@ -32,12 +32,39 @@ https://github.com/davidweb3-ctrl/vesting-dapp
 
 ### 演示链接
 
-- 🌐 在线 Demo：（部署中）
-- 🎥 视频演示：（录制中）
+- 🌐 **在线 Demo**：本地运行 `cd app && pnpm dev`，访问 http://localhost:3000，连接 Devnet 钱包即可体验
+- 🔗 **Devnet 合约**：Anchor `BB1JtUxXtmDnb6L5qXUSfuvT18TggYuSLBzfmjoYFnb4` | Pinocchio `3XcZJ34qBmN2g9joSeVH2kBQkmh2ZVV3e6dRMb7TCq3h`（[Explorer](https://explorer.solana.com/address/BB1JtUxXtmDnb6L5qXUSfuvT18TggYuSLBzfmjoYFnb4?cluster=devnet)）
+- 📖 详细测试步骤：[Devnet 测试指南](docs/DEVNET_TESTING.md)
 
 ### 功能截图
 
-> 截图待补充
+**首页**
+
+![Home Page](https://github.com/user-attachments/assets/8aa45b1f-fcab-42cf-afb8-8c82983a9b26)
+
+**创建锁仓计划**
+
+![Create Vesting](https://github.com/user-attachments/assets/bd29304f-3ddf-4d42-b441-1ee12a0a8d5e)
+
+**创建锁仓计划 — 创建成功**
+
+![Create Success](https://github.com/user-attachments/assets/29eaf60a-c085-43be-909f-15fc3d55bb71)
+
+**Dashboard — Admin 视图（已充值）**
+
+![Dashboard Admin](https://github.com/user-attachments/assets/d6444419-7e08-4d35-90c8-9e86ae7cfbf0)
+
+**Dashboard — Beneficiary 视图**
+
+![Dashboard Beneficiary](https://github.com/user-attachments/assets/0b736ede-47d9-4467-907e-662a6382b1c3)
+
+**Claim 页面 — 领取 Token**
+
+![Claim Page](https://github.com/user-attachments/assets/ecd3a491-5d71-4e2d-9a01-21535b5d534c)
+
+**Claim 成功**
+
+![Claim Success](https://github.com/user-attachments/assets/670f941b-4a5f-4a10-83a7-78d52ac60205)
 
 ---
 
